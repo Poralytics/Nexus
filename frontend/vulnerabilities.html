@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Vulnerabilities - NEXUS</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, sans-serif; background: linear-gradient(135deg, #0f172a, #1e293b); color: #f8fafc; }
+.app { display: grid; grid-template-columns: 280px 1fr; min-height: 100vh; }
+.sidebar { background: linear-gradient(180deg, #1e293b, #0f172a); padding: 2rem 1.5rem; border-right: 1px solid rgba(59,130,246,0.2); }
+.logo { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 2rem; padding: 1rem; background: linear-gradient(135deg, rgba(59,130,246,0.1), rgba(139,92,246,0.1)); border-radius: 12px; }
+.logo-icon { width: 45px; height: 45px; background: linear-gradient(135deg, #3b82f6, #8b5cf6); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.75rem; }
+.logo-text { font-size: 1.5rem; font-weight: 800; background: linear-gradient(135deg, #60a5fa, #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.nav-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.85rem 1rem; margin-bottom: 0.35rem; border-radius: 10px; cursor: pointer; color: #94a3b8; }
+.nav-item:hover { background: linear-gradient(135deg, rgba(59,130,246,0.15), rgba(139,92,246,0.15)); color: #60a5fa; }
+.nav-item.active { background: linear-gradient(135deg, rgba(59,130,246,0.2), rgba(139,92,246,0.2)); color: #60a5fa; border-left: 3px solid #3b82f6; }
+.main { padding: 2rem 3rem; }
+.header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+.header-title { font-size: 2rem; font-weight: 800; }
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 2rem; }
+.stat-card { background: linear-gradient(135deg, rgba(30,41,59,0.8), rgba(15,23,42,0.8)); border: 2px solid rgba(59,130,246,0.2); border-radius: 16px; padding: 1.5rem; text-align: center; }
+.stat-value { font-size: 2.5rem; font-weight: 700; margin-bottom: 0.5rem; }
+.stat-label { color: #94a3b8; font-size: 0.875rem; }
+.critical { color: #fca5a5; }
+.high { color: #fb923c; }
+.medium { color: #fbbf24; }
+.low { color: #86efac; }
+.vuln-card { background: linear-gradient(135deg, rgba(30,41,59,0.8), rgba(15,23,42,0.8)); border: 2px solid rgba(59,130,246,0.2); border-radius: 20px; padding: 2rem; margin-bottom: 1.5rem; }
+.vuln-header { display: flex; justify-content: space-between; align-items: start; margin-bottom: 1.5rem; }
+.vuln-title { font-size: 1.5rem; font-weight: 700; margin-bottom: 0.5rem; }
+.vuln-meta { color: #94a3b8; font-size: 0.875rem; }
+.severity-badge { padding: 0.4rem 0.9rem; border-radius: 14px; font-size: 0.75rem; font-weight: 700; display: inline-block; text-transform: uppercase; }
+.severity-critical { background: rgba(220,38,38,0.2); color: #fca5a5; border: 1px solid rgba(220,38,38,0.4); }
+.severity-high { background: rgba(249,115,22,0.2); color: #fb923c; border: 1px solid rgba(249,115,22,0.4); }
+.severity-medium { background: rgba(245,158,11,0.2); color: #fbbf24; border: 1px solid rgba(245,158,11,0.4); }
+.severity-low { background: rgba(34,197,94,0.2); color: #86efac; border: 1px solid rgba(34,197,94,0.4); }
+.vuln-section { margin-bottom: 1.5rem; }
+.section-title { font-weight: 700; color: #60a5fa; margin-bottom: 0.75rem; font-size: 1.1rem; }
+.section-content { color: #cbd5e1; line-height: 1.6; background: rgba(15,23,42,0.5); padding: 1rem; border-radius: 10px; border-left: 3px solid rgba(59,130,246,0.5); }
+.code-block { background: rgba(15,23,42,0.8); border: 1px solid rgba(59,130,246,0.3); border-radius: 10px; padding: 1rem; font-family: 'Courier New', monospace; font-size: 0.875rem; color: #86efac; overflow-x: auto; }
+.btn { padding: 0.75rem 1.5rem; border-radius: 10px; border: none; font-weight: 600; cursor: pointer; }
+.btn-primary { background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; }
+.btn-secondary { background: rgba(59,130,246,0.1); color: #60a5fa; }
+.cvss-score { display: inline-block; padding: 0.5rem 1rem; background: linear-gradient(135deg, rgba(220,38,38,0.2), rgba(185,28,28,0.2)); border: 2px solid rgba(220,38,38,0.4); border-radius: 12px; font-size: 1.5rem; font-weight: 700; color: #fca5a5; }
+</style>
+</head>
+<body>
+<div class="app">
+<div class="sidebar">
+<div class="logo">
+<div class="logo-icon">🛡️</div>
+<div class="logo-text">NEXUS</div>
+</div>
+<div class="nav-item" onclick="window.location='/dashboard.html'"><span>📊</span> Overview</div>
+<div class="nav-item" onclick="window.location='/domains.html'"><span>🌐</span> Domains</div>
+<div class="nav-item" onclick="window.location='/scans.html'"><span>🔍</span> Scans</div>
+<div class="nav-item active"><span>⚠️</span> Vulnerabilities</div>
+<div class="nav-item" onclick="window.location='/pricing'"><span>💳</span> Billing</div>
+<div class="nav-item" onclick="logout()"><span>🚪</span> Logout</div>
+</div>
+
+<div class="main">
+<div class="header">
+<div>
+<div class="header-title">Vulnerability Management</div>
+<div style="color: #94a3b8; margin-top: 0.5rem;">Track and remediate security issues</div>
+</div>
+<button class="btn-primary" onclick="window.location='/domains.html'">🔍 New Scan</button>
+</div>
+
+<div class="stats">
+<div class="stat-card">
+<div class="stat-value critical" id="criticalCount">3</div>
+<div class="stat-label">Critical</div>
+</div>
+<div class="stat-card">
+<div class="stat-value high" id="highCount">5</div>
+<div class="stat-label">High</div>
+</div>
+<div class="stat-card">
+<div class="stat-value medium" id="mediumCount">8</div>
+<div class="stat-label">Medium</div>
+</div>
+<div class="stat-card">
+<div class="stat-value low" id="lowCount">12</div>
+<div class="stat-label">Low</div>
+</div>
+</div>
+
+<div id="vulnsList">
+<!-- Demo vulnerability -->
+<div class="vuln-card">
+<div class="vuln-header">
+<div>
+<div class="vuln-title">🚨 SQL Injection Vulnerability</div>
+<div class="vuln-meta">example.com/login • Discovered 2 hours ago</div>
+</div>
+<div>
+<span class="severity-badge severity-critical">Critical</span>
+<div style="margin-top: 0.5rem;">
+<span class="cvss-score">9.8</span>
+</div>
+</div>
+</div>
+
+<div class="vuln-section">
+<div class="section-title">📝 Description</div>
+<div class="section-content">
+The login form is vulnerable to SQL Injection attacks. Attackers can bypass authentication by injecting malicious SQL code through the username parameter.
+</div>
+</div>
+
+<div class="vuln-section">
+<div class="section-title">🔍 Evidence</div>
+<div class="code-block">
+Payload: ' OR '1'='1
+SQL error message found in response: "You have an error in your SQL syntax..."
+</div>
+</div>
+
+<div class="vuln-section">
+<div class="section-title">✅ Recommendation</div>
+<div class="section-content">
+Use parameterized queries or prepared statements. Never concatenate user input directly into SQL queries. Implement input validation and sanitization. Use an ORM framework if possible.
+</div>
+</div>
+
+<div class="vuln-section">
+<div class="section-title">📚 References</div>
+<div class="section-content">
+• CWE-89: SQL Injection<br>
+• OWASP Top 10 2021: A03 - Injection<br>
+• CVSS 3.1 Score: 9.8 (Critical)
+</div>
+</div>
+
+<div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+<button class="btn btn-primary" onclick="alert('AI-powered fix suggestions coming soon!')">🤖 AI Fix Suggestions</button>
+<button class="btn btn-secondary" onclick="alert('Mark as fixed')">✅ Mark as Fixed</button>
+<button class="btn btn-secondary" onclick="alert('Export report')">📄 Export Report</button>
+</div>
+</div>
+
+<!-- More demo vulnerabilities -->
+<div class="vuln-card">
+<div class="vuln-header">
+<div>
+<div class="vuln-title">🔐 Cross-Site Scripting (XSS)</div>
+<div class="vuln-meta">test.com/search • Discovered 5 hours ago</div>
+</div>
+<span class="severity-badge severity-high">High</span>
+</div>
+<div class="vuln-section">
+<div class="section-title">📝 Description</div>
+<div class="section-content">
+Reflected XSS vulnerability in search parameter. User input is reflected in the response without proper encoding.
+</div>
+</div>
+<div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+<button class="btn btn-secondary" onclick="alert('View details')">View Details</button>
+</div>
+</div>
+
+<div class="vuln-card">
+<div class="vuln-header">
+<div>
+<div class="vuln-title">🛡️ Missing Security Headers</div>
+<div class="vuln-meta">demo.com • Discovered 1 day ago</div>
+</div>
+<span class="severity-badge severity-medium">Medium</span>
+</div>
+<div class="vuln-section">
+<div class="section-title">📝 Description</div>
+<div class="section-content">
+No Content-Security-Policy header configured. This increases vulnerability to XSS and injection attacks.
+</div>
+</div>
+<div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+<button class="btn btn-secondary" onclick="alert('View details')">View Details</button>
+</div>
+</div>
+</div>
+</div>
+
+<script>
+const token = localStorage.getItem('token');
+if (!token) window.location.href = '/login';
+
+async function loadVulnerabilities() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const scanId = urlParams.get('scan');
+  
+  try {
+    let url = '/api/scans';
+    if (scanId) {
+      url = '/api/scans/' + scanId + '/results';
+    }
+    
+    const res = await fetch(url, {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    
+    if (res.ok) {
+      const data = await res.json();
+      
+      if (data.vulnerabilities && data.vulnerabilities.length > 0) {
+        // Update stats
+        const stats = {
+          critical: data.vulnerabilities.filter(v => v.severity === 'critical').length,
+          high: data.vulnerabilities.filter(v => v.severity === 'high').length,
+          medium: data.vulnerabilities.filter(v => v.severity === 'medium').length,
+          low: data.vulnerabilities.filter(v => v.severity === 'low').length
+        };
+        
+        document.getElementById('criticalCount').textContent = stats.critical;
+        document.getElementById('highCount').textContent = stats.high;
+        document.getElementById('mediumCount').textContent = stats.medium;
+        document.getElementById('lowCount').textContent = stats.low;
+        
+        // Display vulnerabilities
+        const vulnsHtml = data.vulnerabilities.map(v => `
+          <div class="vuln-card">
+            <div class="vuln-header">
+              <div>
+                <div class="vuln-title">${getVulnIcon(v.type)} ${v.title}</div>
+                <div class="vuln-meta">${v.url || 'Unknown URL'} • Just found</div>
+              </div>
+              <span class="severity-badge severity-${v.severity}">${v.severity}</span>
+            </div>
+            <div class="vuln-section">
+              <div class="section-title">📝 Description</div>
+              <div class="section-content">${v.description || 'No description available'}</div>
+            </div>
+            ${v.evidence ? `
+              <div class="vuln-section">
+                <div class="section-title">🔍 Evidence</div>
+                <div class="code-block">${v.evidence}</div>
+              </div>
+            ` : ''}
+            ${v.recommendation ? `
+              <div class="vuln-section">
+                <div class="section-title">✅ Recommendation</div>
+                <div class="section-content">${v.recommendation}</div>
+              </div>
+            ` : ''}
+            <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+              <button class="btn btn-secondary" onclick="alert('View full details')">View Details</button>
+            </div>
+          </div>
+        `).join('');
+        
+        document.getElementById('vulnsList').innerHTML = vulnsHtml;
+      }
+    }
+  } catch(e) {
+    console.log('Error loading vulnerabilities:', e);
+  }
+}
+
+function getVulnIcon(type) {
+  const icons = {
+    'sql_injection': '🚨',
+    'xss': '🔐',
+    'security_headers': '🛡️',
+    'ssl_tls': '🔒',
+    'csrf': '🎯',
+    'default': '⚠️'
+  };
+  return icons[type] || icons.default;
+}
+
+function logout() {
+  if (confirm('Logout?')) {
+    localStorage.removeItem('token');
+    window.location.href = '/login';
+  }
+}
+
+loadVulnerabilities();
+</script>
+</body>
+</html>

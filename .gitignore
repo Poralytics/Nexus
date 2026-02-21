@@ -1,0 +1,38 @@
+# Dependencies
+node_modules/
+.npm/
+
+# Environment variables (NEVER commit these)
+.env
+backend/.env
+!.env.example
+!backend/.env.example
+
+# Database
+*.db
+*.db-shm
+*.db-wal
+nexus-*.db
+
+# Logs
+*.log
+logs/
+coverage/
+
+# Build artifacts
+dist/
+build/
+.cache/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Temp files
+*.tmp
+tmp/

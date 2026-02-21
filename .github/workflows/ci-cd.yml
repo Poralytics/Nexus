@@ -1,0 +1,112 @@
+name: NEXUS CI/CD
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  test:
+    name: Test Suite
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: backend
+        run: npm ci
+
+      - name: Run unit tests
+        working-directory: backend
+        run: npm run test:unit
+        env:
+          JWT_SECRET: test-jwt-secret-for-ci-only-32chars!!
+          NODE_ENV: test
+
+      - name: Run integration tests
+        working-directory: backend
+        run: npm run test:integration
+        env:
+          JWT_SECRET: test-jwt-secret-for-ci-only-32chars!!
+          NODE_ENV: test
+
+      - name: Upload coverage
+        uses: codecov/codecov-action@v3
+        if: always()
+        with:
+          directory: backend/coverage
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+      - run: npm ci
+        working-directory: backend
+      - run: npm run lint
+        working-directory: backend
+
+  security:
+    name: Security Audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - run: npm ci
+        working-directory: backend
+      - name: Audit dependencies
+        working-directory: backend
+        run: npm audit --audit-level=high
+
+  docker:
+    name: Docker Build
+    needs: [test, lint]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker build -t nexus-scanner:${{ github.sha }} -f docker/Dockerfile.backend .
+
+      - name: Run container health check
+        run: |
+          docker run -d --name nexus-test \
+            -e JWT_SECRET=test-secret-ci \
+            -e NODE_ENV=test \
+            -p 3000:3000 \
+            nexus-scanner:${{ github.sha }}
+          sleep 15
+          curl -f http://localhost:3000/health || exit 1
+          docker stop nexus-test
+
+  deploy:
+    name: Deploy to Production
+    needs: [docker]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    environment: production
+
+    steps:
+      - name: Deploy
+        run: echo "Add your deployment steps here (SSH, kubectl, etc.)"

@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Scans - NEXUS</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, sans-serif; background: linear-gradient(135deg, #0f172a, #1e293b); color: #f8fafc; }
+.app { display: grid; grid-template-columns: 280px 1fr; min-height: 100vh; }
+.sidebar { background: linear-gradient(180deg, #1e293b, #0f172a); padding: 2rem 1.5rem; border-right: 1px solid rgba(59,130,246,0.2); }
+.logo { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 2rem; padding: 1rem; background: linear-gradient(135deg, rgba(59,130,246,0.1), rgba(139,92,246,0.1)); border-radius: 12px; }
+.logo-icon { width: 45px; height: 45px; background: linear-gradient(135deg, #3b82f6, #8b5cf6); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.75rem; }
+.logo-text { font-size: 1.5rem; font-weight: 800; background: linear-gradient(135deg, #60a5fa, #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.nav-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.85rem 1rem; margin-bottom: 0.35rem; border-radius: 10px; cursor: pointer; color: #94a3b8; }
+.nav-item:hover { background: linear-gradient(135deg, rgba(59,130,246,0.15), rgba(139,92,246,0.15)); color: #60a5fa; }
+.nav-item.active { background: linear-gradient(135deg, rgba(59,130,246,0.2), rgba(139,92,246,0.2)); color: #60a5fa; border-left: 3px solid #3b82f6; }
+.main { padding: 2rem 3rem; }
+.header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+.header-title { font-size: 2rem; font-weight: 800; }
+.table-card { background: linear-gradient(135deg, rgba(30,41,59,0.8), rgba(15,23,42,0.8)); border: 2px solid rgba(59,130,246,0.2); border-radius: 20px; padding: 2rem; }
+table { width: 100%; border-collapse: collapse; }
+th { text-align: left; padding: 1.25rem; color: #94a3b8; font-weight: 700; font-size: 0.85rem; border-bottom: 2px solid rgba(59,130,246,0.2); }
+td { padding: 1.25rem; border-bottom: 1px solid rgba(59,130,246,0.1); }
+.status-badge { padding: 0.4rem 0.9rem; border-radius: 14px; font-size: 0.75rem; font-weight: 700; display: inline-block; }
+.status-completed { background: rgba(16,185,129,0.2); color: #86efac; }
+.status-running { background: rgba(59,130,246,0.2); color: #60a5fa; }
+.status-pending { background: rgba(245,158,11,0.2); color: #fbbf24; }
+.status-failed { background: rgba(239,68,68,0.2); color: #fca5a5; }
+.btn { padding: 0.6rem 1.2rem; border-radius: 10px; border: none; font-weight: 600; cursor: pointer; }
+.btn-primary { background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; }
+.btn-secondary { background: rgba(59,130,246,0.1); color: #60a5fa; }
+.progress-bar { width: 100%; height: 8px; background: rgba(59,130,246,0.1); border-radius: 10px; overflow: hidden; }
+.progress-fill { height: 100%; background: linear-gradient(90deg, #3b82f6, #8b5cf6); transition: width 0.3s; }
+</style>
+</head>
+<body>
+<div class="app">
+<div class="sidebar">
+<div class="logo">
+<div class="logo-icon">🛡️</div>
+<div class="logo-text">NEXUS</div>
+</div>
+<div class="nav-item" onclick="window.location='/dashboard.html'"><span>📊</span> Overview</div>
+<div class="nav-item" onclick="window.location='/domains.html'"><span>🌐</span> Domains</div>
+<div class="nav-item active"><span>🔍</span> Scans</div>
+<div class="nav-item" onclick="window.location='/vulnerabilities.html'"><span>⚠️</span> Vulnerabilities</div>
+<div class="nav-item" onclick="window.location='/pricing'"><span>💳</span> Billing</div>
+<div class="nav-item" onclick="logout()"><span>🚪</span> Logout</div>
+</div>
+
+<div class="main">
+<div class="header">
+<div>
+<div class="header-title">Security Scans</div>
+<div style="color: #94a3b8; margin-top: 0.5rem;">View all security scan results</div>
+</div>
+<button class="btn-primary" onclick="window.location='/domains.html'">🔍 New Scan</button>
+</div>
+
+<div class="table-card">
+<table>
+<thead>
+<tr>
+<th>Scan ID</th>
+<th>Domain</th>
+<th>Status</th>
+<th>Progress</th>
+<th>Vulnerabilities</th>
+<th>Started</th>
+<th>Actions</th>
+</tr>
+</thead>
+<tbody id="scansList">
+<tr>
+<td>#12345</td>
+<td>example.com</td>
+<td><span class="status-badge status-completed">Completed</span></td>
+<td>
+<div class="progress-bar"><div class="progress-fill" style="width: 100%"></div></div>
+<div style="font-size: 0.75rem; color: #64748b; margin-top: 0.25rem;">100%</div>
+</td>
+<td><strong>3</strong> issues found</td>
+<td>2 hours ago</td>
+<td>
+<button class="btn btn-secondary" onclick="viewScan(12345)">View Results</button>
+</td>
+</tr>
+<tr>
+<td>#12344</td>
+<td>test.com</td>
+<td><span class="status-badge status-completed">Completed</span></td>
+<td>
+<div class="progress-bar"><div class="progress-fill" style="width: 100%"></div></div>
+<div style="font-size: 0.75rem; color: #64748b; margin-top: 0.25rem;">100%</div>
+</td>
+<td><strong>5</strong> issues found</td>
+<td>1 day ago</td>
+<td>
+<button class="btn btn-secondary" onclick="viewScan(12344)">View Results</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+
+<script>
+const token = localStorage.getItem('token');
+if (!token) window.location.href = '/login';
+
+async function loadScans() {
+  try {
+    const res = await fetch('/api/scans', {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (data.scans && data.scans.length > 0) {
+        document.getElementById('scansList').innerHTML = data.scans.map(scan => {
+          const statusClass = scan.status === 'completed' ? 'status-completed' : 
+                            scan.status === 'running' ? 'status-running' :
+                            scan.status === 'failed' ? 'status-failed' : 'status-pending';
+          const statusText = scan.status.charAt(0).toUpperCase() + scan.status.slice(1);
+          const progress = scan.progress || 0;
+          const timeAgo = scan.created_at ? formatTime(scan.created_at) : 'Unknown';
+          
+          return `
+            <tr>
+              <td>#${scan.id}</td>
+              <td>${scan.url || scan.domain_name || 'Unknown'}</td>
+              <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+              <td>
+                <div class="progress-bar"><div class="progress-fill" style="width: ${progress}%"></div></div>
+                <div style="font-size: 0.75rem; color: #64748b; margin-top: 0.25rem;">${progress}%</div>
+              </td>
+              <td><strong>${scan.vulnerabilities_found || 0}</strong> issues</td>
+              <td>${timeAgo}</td>
+              <td>
+                <button class="btn btn-secondary" onclick="viewScan(${scan.id})">
+                  ${scan.status === 'completed' ? 'View Results' : 'View Status'}
+                </button>
+              </td>
+            </tr>
+          `;
+        }).join('');
+      }
+    }
+  } catch(e) {
+    console.log('Error loading scans:', e);
+  }
+}
+
+function formatTime(timestamp) {
+  const now = Math.floor(Date.now() / 1000);
+  const diff = now - timestamp;
+  
+  if (diff < 60) return 'Just now';
+  if (diff < 3600) return Math.floor(diff / 60) + ' mins ago';
+  if (diff < 86400) return Math.floor(diff / 3600) + ' hours ago';
+  return Math.floor(diff / 86400) + ' days ago';
+}
+
+async function viewScan(scanId) {
+  try {
+    const res = await fetch('/api/scans/' + scanId, {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    
+    if (res.ok) {
+      const data = await res.json();
+      const scan = data.scan;
+      
+      if (scan.status === 'completed') {
+        window.location.href = '/vulnerabilities.html?scan=' + scanId;
+      } else {
+        alert('Scan Status: ' + scan.status + '\nProgress: ' + (scan.progress || 0) + '%\n\nRefresh this page to see updated status.');
+      }
+    } else {
+      alert('Error loading scan details');
+    }
+  } catch(e) {
+    alert('Error: ' + e.message);
+  }
+}
+
+function logout() {
+  if (confirm('Logout?')) {
+    localStorage.removeItem('token');
+    window.location.href = '/login';
+  }
+}
+
+loadScans();
+setInterval(loadScans, 5000); // Refresh every 5 seconds
+</script>
+</body>
+</html>

@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Register — NEXUS (DEBUG)</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0F172A;color:#F1F5F9;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:1rem}
+.box{background:#1E293B;border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:2.5rem;width:100%;max-width:420px}
+.logo{font-size:1.5rem;font-weight:800;background:linear-gradient(135deg,#6366F1,#8B5CF6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-align:center;margin-bottom:2rem}
+h1{font-size:1.5rem;font-weight:700;text-align:center;margin-bottom:.3rem}
+.sub{color:#64748B;text-align:center;font-size:.9rem;margin-bottom:2rem}
+.form-group{margin-bottom:1.2rem}
+label{display:block;font-size:.85rem;color:#94A3B8;margin-bottom:.4rem;font-weight:500}
+input{width:100%;background:#0F172A;border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:.75rem 1rem;color:#F1F5F9;font-size:.95rem;outline:none;transition:border .2s}
+input:focus{border-color:#6366F1}
+.btn{width:100%;background:#6366F1;color:white;border:none;padding:.85rem;border-radius:10px;font-size:1rem;font-weight:600;cursor:pointer;transition:background .2s;margin-top:.5rem}
+.btn:hover{background:#4F46E5}
+.btn:disabled{background:#374151;cursor:not-allowed}
+.error{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#FCA5A5;padding:.75rem;border-radius:8px;font-size:.85rem;margin-bottom:1rem;display:none}
+.success{background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.3);color:#6EE7B7;padding:.75rem;border-radius:8px;font-size:.85rem;margin-bottom:1rem;display:none}
+.debug{background:rgba(99,102,241,.1);border:1px solid rgba(99,102,241,.2);color:#A5B4FC;padding:1rem;border-radius:8px;font-size:.75rem;margin-top:1rem;max-height:200px;overflow-y:auto;font-family:monospace;white-space:pre-wrap}
+.plan-box{background:rgba(99,102,241,.1);border:1px solid rgba(99,102,241,.2);border-radius:10px;padding:1rem;margin-bottom:1.5rem;font-size:.85rem;color:#A5B4FC}
+.plan-box strong{color:#F1F5F9}
+.links{text-align:center;margin-top:1.5rem;font-size:.85rem;color:#64748B}
+.links a{color:#6366F1;text-decoration:none}
+</style>
+</head>
+<body>
+<div class="box">
+  <div class="logo">🛡️ NEXUS DEBUG</div>
+  <h1>Create your account</h1>
+  <p class="sub">Version de test avec logs</p>
+  
+  <div class="plan-box">✅ Free tier: <strong>3 domains</strong>, unlimited scans, PDF reports</div>
+  
+  <div class="error" id="error"></div>
+  <div class="success" id="success"></div>
+  
+  <div class="form-group">
+    <label>Full Name</label>
+    <input type="text" id="name" placeholder="John Doe" value="Test User">
+  </div>
+  
+  <div class="form-group">
+    <label>Email address</label>
+    <input type="email" id="email" placeholder="you@company.com" value="test@example.com">
+  </div>
+  
+  <div class="form-group">
+    <label>Password (8+ characters)</label>
+    <input type="password" id="password" placeholder="••••••••" value="password123">
+  </div>
+  
+  <button class="btn" id="regBtn" onclick="register()">Create Account</button>
+  
+  <div class="debug" id="debug">Logs apparaîtront ici...</div>
+  
+  <div class="links">
+    <p>Already have an account? <a href="login.html">Sign in</a></p>
+    <p style="margin-top:.5rem"><a href="index.html">← Back to home</a></p>
+  </div>
+</div>
+
+<script>
+function log(msg) {
+  const debug = document.getElementById('debug');
+  const timestamp = new Date().toLocaleTimeString();
+  debug.textContent += `[${timestamp}] ${msg}\n`;
+  debug.scrollTop = debug.scrollHeight;
+  console.log(msg);
+}
+
+async function register() {
+  log('🚀 Début de l\'inscription');
+  
+  const name = document.getElementById('name').value.trim();
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+  const btn = document.getElementById('regBtn');
+  const err = document.getElementById('error');
+  const succ = document.getElementById('success');
+  
+  err.style.display = 'none';
+  succ.style.display = 'none';
+  
+  log(`📧 Email: ${email}`);
+  log(`👤 Name: ${name}`);
+  log(`🔑 Password length: ${password.length}`);
+  
+  // Validation
+  if (!email) {
+    log('❌ Email vide');
+    err.textContent = 'Email requis';
+    err.style.display = 'block';
+    return;
+  }
+  
+  if (!password || password.length < 8) {
+    log('❌ Mot de passe invalide (< 8 caractères)');
+    err.textContent = 'Mot de passe doit faire 8+ caractères';
+    err.style.display = 'block';
+    return;
+  }
+  
+  log('✅ Validation OK');
+  
+  btn.disabled = true;
+  btn.textContent = 'Creating account...';
+  
+  const payload = {
+    email: email,
+    password: password,
+    name: name || email.split('@')[0]
+  };
+  
+  log(`📦 Payload: ${JSON.stringify(payload)}`);
+  
+  const url = '/api/auth/register';
+  log(`🌐 URL: ${window.location.origin}${url}`);
+  
+  try {
+    log('📡 Envoi de la requête...');
+    
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(payload)
+    });
+    
+    log(`📬 Réponse reçue: Status ${response.status} ${response.statusText}`);
+    
+    const contentType = response.headers.get('content-type');
+    log(`📋 Content-Type: ${contentType}`);
+    
+    let data;
+    if (contentType && contentType.includes('application/json')) {
+      data = await response.json();
+      log(`📄 Data: ${JSON.stringify(data)}`);
+    } else {
+      const text = await response.text();
+      log(`📄 Raw response: ${text.substring(0, 200)}`);
+      throw new Error('Réponse non-JSON reçue du serveur');
+    }
+    
+    if (!response.ok) {
+      log(`❌ Erreur HTTP: ${data.error || 'Erreur inconnue'}`);
+      throw new Error(data.error || `Erreur ${response.status}`);
+    }
+    
+    if (!data.token) {
+      log('❌ Pas de token dans la réponse');
+      throw new Error('Pas de token reçu');
+    }
+    
+    log('✅ Token reçu: ' + data.token.substring(0, 20) + '...');
+    log('✅ User: ' + JSON.stringify(data.user));
+    
+    // Sauvegarder
+    localStorage.setItem('nexus_token', data.token);
+    localStorage.setItem('nexus_user', JSON.stringify(data.user));
+    log('✅ Données sauvegardées dans localStorage');
+    
+    succ.textContent = 'Compte créé! Redirection...';
+    succ.style.display = 'block';
+    
+    log('🎉 Inscription réussie! Redirection vers dashboard...');
+    
+    setTimeout(() => {
+      window.location.href = 'dashboard-ultimate.html';
+    }, 1000);
+    
+  } catch(e) {
+    log(`❌ ERREUR: ${e.message}`);
+    log(`Stack: ${e.stack}`);
+    
+    err.textContent = e.message;
+    err.style.display = 'block';
+    
+    btn.disabled = false;
+    btn.textContent = 'Create Account';
+  }
+}
+
+// Enter key
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter') register();
+});
+
+log('✅ Page chargée et prête');
+log('🔍 Mode DEBUG activé');
+</script>
+</body>
+</html>

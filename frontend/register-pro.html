@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Create Account — NEXUS Security</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Inter',-apple-system,sans-serif;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:1rem}
+.container{max-width:450px;width:100%}
+.card{background:white;border-radius:20px;padding:3rem;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.logo{text-align:center;margin-bottom:2rem}
+.logo i{font-size:3.5rem;color:#667eea;margin-bottom:1rem}
+.logo h1{font-size:2rem;font-weight:800;color:#1a202c;margin-bottom:.5rem}
+.logo p{color:#718096;font-size:.95rem}
+.plan-box{background:linear-gradient(135deg,rgba(102,126,234,.1),rgba(118,75,162,.1));border:2px solid rgba(102,126,234,.2);border-radius:12px;padding:1.25rem;margin-bottom:1.5rem;text-align:center}
+.plan-box i{color:#667eea;font-size:2rem;margin-bottom:.5rem}
+.plan-box strong{color:#1a202c;font-size:1.1rem;display:block;margin-bottom:.25rem}
+.plan-box p{color:#4a5568;font-size:.85rem}
+.form-group{margin-bottom:1.25rem}
+label{display:flex;align-items:center;gap:.5rem;font-size:.9rem;font-weight:600;color:#4a5568;margin-bottom:.5rem}
+label i{color:#667eea}
+.input-group{position:relative}
+.input-group i{position:absolute;left:1rem;top:50%;transform:translateY(-50%);color:#a0aec0}
+input{width:100%;background:#f7fafc;border:2px solid #e2e8f0;border-radius:12px;padding:.85rem 1rem .85rem 3rem;font-size:1rem;color:#2d3748;transition:all .3s}
+input:focus{outline:none;border-color:#667eea;background:white;box-shadow:0 0 0 4px rgba(102,126,234,.1)}
+.btn{width:100%;background:linear-gradient(135deg,#667eea,#764ba2);color:white;border:none;padding:1rem;border-radius:12px;font-size:1.05rem;font-weight:700;cursor:pointer;transition:all .3s;margin-top:1rem;display:flex;align-items:center;justify-content:center;gap:.5rem}
+.btn:hover{transform:translateY(-2px);box-shadow:0 10px 25px rgba(102,126,234,.4)}
+.btn:disabled{background:#cbd5e0;cursor:not-allowed;transform:none}
+.error{background:#fee;border:2px solid #fc8181;color:#c53030;padding:1rem;border-radius:12px;margin-bottom:1.5rem;display:none;font-size:.9rem;font-weight:500}
+.success{background:#f0fff4;border:2px solid#48bb78;color:#22543d;padding:1rem;border-radius:12px;margin-bottom:1.5rem;display:none;font-size:.9rem;font-weight:500}
+.links{text-align:center;margin-top:2rem;color:#718096;font-size:.9rem}
+.links a{color:#667eea;font-weight:600;text-decoration:none}
+.links a:hover{text-decoration:underline}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="card">
+    <div class="logo">
+      <i class="fas fa-shield-alt"></i>
+      <h1>NEXUS</h1>
+      <p>Start your free trial today</p>
+    </div>
+    
+    <div class="plan-box">
+      <i class="fas fa-gift"></i>
+      <strong>Free Forever Plan</strong>
+      <p>3 domains • Unlimited scans • Professional reports</p>
+    </div>
+    
+    <div class="error" id="error"></div>
+    <div class="success" id="success"></div>
+    
+    <form id="registerForm">
+      <div class="form-group">
+        <label><i class="fas fa-user"></i> Full Name</label>
+        <div class="input-group">
+          <i class="fas fa-id-card"></i>
+          <input type="text" id="name" placeholder="John Doe" required>
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <label><i class="fas fa-envelope"></i> Email Address</label>
+        <div class="input-group">
+          <i class="fas fa-at"></i>
+          <input type="email" id="email" placeholder="you@company.com" required>
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <label><i class="fas fa-lock"></i> Password (8+ characters)</label>
+        <div class="input-group">
+          <i class="fas fa-key"></i>
+          <input type="password" id="password" placeholder="Create a strong password" minlength="8" required>
+        </div>
+      </div>
+      
+      <button type="submit" class="btn" id="regBtn">
+        <i class="fas fa-user-plus"></i> Create Account
+      </button>
+    </form>
+    
+    <div class="links">
+      <p>Already have an account? <a href="login-pro.html">Sign in</a></p>
+      <p style="margin-top:.75rem"><a href="index.html"><i class="fas fa-arrow-left"></i> Back to home</a></p>
+    </div>
+  </div>
+</div>
+
+<script>
+document.getElementById('registerForm').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  
+  const name = document.getElementById('name').value.trim();
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+  const btn = document.getElementById('regBtn');
+  const err = document.getElementById('error');
+  const succ = document.getElementById('success');
+  
+  err.style.display = 'none';
+  succ.style.display = 'none';
+  
+  if (!email || !password || password.length < 8) {
+    err.textContent = 'Valid email and password (8+ chars) required';
+    err.style.display = 'block';
+    return;
+  }
+  
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating account...';
+  
+  try {
+    const response = await fetch('/api/auth/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password, name })
+    });
+    
+    const data = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(data.error || 'Registration failed');
+    }
+    
+    localStorage.setItem('nexus_token', data.token);
+    localStorage.setItem('nexus_user', JSON.stringify(data.user));
+    
+    succ.textContent = '✓ Account created! Redirecting to dashboard...';
+    succ.style.display = 'block';
+    
+    setTimeout(() => {
+      window.location.href = 'dashboard-pro.html';
+    }, 1000);
+    
+  } catch(e) {
+    err.textContent = e.message;
+    err.style.display = 'block';
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-user-plus"></i> Create Account';
+  }
+});
+</script>
+</body>
+</html>

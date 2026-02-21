@@ -1,0 +1,17 @@
+node_modules
+npm-debug.log
+*.db
+.env
+.git
+.gitignore
+README.md
+docs/
+tests/
+coverage/
+.vscode/
+.idea/
+*.log
+uploads/*
+reports/*
+backups/*
+logs/*
